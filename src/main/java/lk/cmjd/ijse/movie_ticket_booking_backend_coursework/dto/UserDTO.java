@@ -1,16 +1,22 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto;
 
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.Role;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.constraints.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.*;
+import java.util.List;
 
-import java.io.Serializable;
-
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-public class UserDTO implements Serializable {
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserDTO {
     private String id;
+    @NotBlank @Size(max = 100)
+    private String name;
+    @NotBlank @Email @Size(max = 150)
+    private String email;
+    @NotNull
     private Role role;
 }

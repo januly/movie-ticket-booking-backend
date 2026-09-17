@@ -1,29 +1,31 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.Role;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.*;
 import java.util.List;
 
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-@Data
-@Entity
+@AllArgsConstructor
 @Builder
-@Table(name="Users")
-public class UserEntity implements Serializable {
+@Entity
+@Table(name = "users")
+public class UserEntity {
     @Id
     private String id;
+    @Column(nullable = false, length = 100)
+    private String name;
+    @Column(nullable = false, unique = true, length = 150)
+    private String email;
+    @Column(nullable = false)
+    private String password;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
-
     @OneToMany(mappedBy = "user")
-    @JsonIgnore
     private List<BookingEntity> bookings;
 }

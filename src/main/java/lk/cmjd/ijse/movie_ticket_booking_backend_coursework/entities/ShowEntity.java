@@ -1,41 +1,37 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.showStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.*;
 import java.util.List;
 
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-@Data
-@Entity
-@Table(name="Shows")
+@AllArgsConstructor
 @Builder
-    public class ShowEntity implements Serializable {
-        @Id
-        private String showId;
-        private String showDate;
-        private String showTime;
-        private String ticketPrice;
-        @Enumerated(EnumType.STRING)
-        private showStatus status;
-
-    @ManyToOne
+@Entity
+@Table(name = "shows")
+public class ShowEntity {
+    @Id
+    private String showId;
+    @Column(nullable = false)
+    private LocalDate showDate;
+    @Column(nullable = false)
+    private LocalTime showTime;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal ticketPrice;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private showStatus status;
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id", nullable = false)
     private MovieEntity movie;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "theatre_id", nullable = false)
     private TheatreEntity theatre;
-
     @OneToMany(mappedBy = "show")
-    @JsonIgnore
     private List<BookingEntity> bookings;
-
 }

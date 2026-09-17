@@ -1,32 +1,32 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.entities;
 
 import jakarta.persistence.*;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.paymentStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.*;
+import java.util.List;
 
-import java.io.Serializable;
-
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-@Data
-@Entity
-@Table(name="Payments")
+@AllArgsConstructor
 @Builder
-public class PaymentEntity implements Serializable {
+@Entity
+@Table(name = "payments")
+public class PaymentEntity {
     @Id
     private String paymentId;
-    private String bookingAmount;
-    private String paymentDate;
-    @Column(nullable = false)
-    private String paymentMethod;
-    @Enumerated(EnumType.STRING)
-    private paymentStatus status;
-
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id", nullable = false, unique = true)
     private BookingEntity booking;
-
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal amount;
+    @Column(nullable = false)
+    private LocalDateTime paymentDate;
+    @Column(nullable = false, length = 30)
+    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private paymentStatus status;
 }

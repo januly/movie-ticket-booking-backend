@@ -1,22 +1,30 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto;
 
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.movieStatus;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.constraints.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.*;
+import java.util.List;
 
-import java.io.Serializable;
-
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-public class MovieDTO implements Serializable {
+@NoArgsConstructor
+@AllArgsConstructor
+public class MovieDTO {
     private String movieId;
+    @NotBlank @Size(max = 150)
     private String title;
+    @NotBlank @Size(max = 2000)
     private String description;
-    private String duration;
+    @Min(1) @Max(600)
+    private int duration;
+    @NotBlank @Size(max = 50)
     private String language;
+    @NotBlank @Size(max = 80)
     private String genre;
-    private String releaseDate;
+    @NotNull
+    private LocalDate releaseDate;
+    @NotNull
     private movieStatus status;
 }

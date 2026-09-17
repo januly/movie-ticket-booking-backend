@@ -1,20 +1,24 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto;
 
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.theatreStatus;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.constraints.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.*;
+import java.util.List;
 
-import java.io.Serializable;
-
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-public class TheatreDTO implements Serializable {
-
+@NoArgsConstructor
+@AllArgsConstructor
+public class TheatreDTO {
     private String theatreId;
+    @NotBlank @Size(max = 150)
     private String theatreName;
+    @NotBlank @Size(max = 200)
     private String location;
-    private String Capacity;
+    @Min(1) @Max(1000)
+    private int capacity;
+    @NotNull
     private theatreStatus status;
 }

@@ -1,36 +1,37 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.movieStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.*;
 import java.util.List;
 
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-@Data
-@Entity
-@Table(name="Movies")
+@AllArgsConstructor
 @Builder
-
-public class MovieEntity implements Serializable {
+@Entity
+@Table(name = "movies")
+public class MovieEntity {
     @Id
     private String movieId;
+    @Column(nullable = false, length = 150)
     private String title;
+    @Column(nullable = false, length = 2000)
     private String description;
-    private String duration;
+    @Column(nullable = false)
+    private int duration;
+    @Column(nullable = false, length = 50)
     private String language;
+    @Column(nullable = false, length = 80)
     private String genre;
-    private String releaseDate;
+    @Column(nullable = false)
+    private LocalDate releaseDate;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private movieStatus status;
-
     @OneToMany(mappedBy = "movie")
-    @JsonIgnore
     private List<ShowEntity> shows;
 }

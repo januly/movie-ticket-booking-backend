@@ -1,30 +1,31 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.theatreStatus;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.*;
 import java.util.List;
 
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-@Data
+@AllArgsConstructor
+@Builder
 @Entity
-@Table(name="Theatre")
-public class TheatreEntity implements Serializable {
+@Table(name = "theatre")
+public class TheatreEntity {
     @Id
     private String theatreId;
+    @Column(nullable = false, length = 150)
     private String theatreName;
+    @Column(nullable = false, length = 200)
     private String location;
-    private String Capacity;
+    @Column(nullable = false)
+    private int capacity;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private theatreStatus status;
-
     @OneToMany(mappedBy = "theatre")
-    @JsonIgnore
     private List<ShowEntity> shows;
 }
