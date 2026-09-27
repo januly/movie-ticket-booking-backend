@@ -1,104 +1,78 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.impl;
 
-
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dao.MovieDao;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.MovieDTO;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.movieStatus;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.entities.MovieEntity;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.MovieService;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.util.Conversion;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.util.IDGenerate;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dao.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.entities.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.exception.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.security.CurrentUser;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.*;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
+@Transactional
 public class MovieServiceIMPL implements MovieService {
-
-    private  final MovieDao movieDao;
+    private final MovieDao movieDao;
+    private final ShowDao showDao;
     private final Conversion conversion;
 
-
     @Override
-    public void createMovie(MovieDTO movie) {
-        //Generate MovieId
+    public MovieDTO createMovie(MovieDTO dto) {
+        MovieEntity movie = conversion.toMovieEntity(dto);
         movie.setMovieId(IDGenerate.movieId());
-        //saveData
-        movieDao.save(conversion.toMovieEntity(movie));
-
-
+        log.info("Created movie {}", movie.getMovieId());
+        return conversion.toMovieDTO(movieDao.save(movie));
     }
 
     @Override
-    public MovieDTO getselectedMovie(String movieId) {
-        return new MovieDTO(
-                "M001",
-                "Avengers: Doomsday",
-                "The Avengers face a new threat involving Doctor Doom.",
-                "TBA",
-                "English",
-                "Action/Sci-Fi",
-                "2026-12-18",
-                movieStatus.UPCOMING );
+    @Transactional(readOnly = true)
+    public MovieDTO getSelectedMovie(String id) { return conversion.toMovieDTO(findMovie(id)); }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MovieDTO> getMovies(String title, String language, movieStatus status) {
+        return movieDao.findAll().stream()
+                .filter(movie -> title == null || movie.getTitle().toLowerCase(Locale.ROOT).contains(title.toLowerCase(Locale.ROOT)))
+                .filter(movie -> language == null || movie.getLanguage().equalsIgnoreCase(language))
+                .filter(movie -> status == null || movie.getStatus() == status)
+                .map(conversion::toMovieDTO).toList();
     }
 
     @Override
-    public List<MovieDTO> getMovies() {
-        List<MovieDTO> moviesList = List.of(
-                new MovieDTO(
-                        "M001",
-                        "Avengers: Doomsday",
-                        "The Avengers face a new threat involving Doctor Doom.",
-                        "TBA",
-                        "English",
-                        "Action/Sci-Fi",
-                        "2026-12-18",
-                        movieStatus.UPCOMING
-                ),
-                new MovieDTO(
-                        "M002",
-                        "The Social Reckoning",
-                        "A drama about a whistleblower exposing social media secrets.",
-                        "112 minutes",
-                        "English",
-                        "Drama/Thriller",
-                        "2026-10-09",
-                        movieStatus.NOW_SHOWING
-                ),
-                new MovieDTO(
-                        "M003",
-                        "The Conjuring",
-                        "Paranormal investigators help a family haunted by supernatural forces.",
-                        "112 minutes",
-                        "English",
-                        "Horror",
-                        "2013-07-19",
-                        movieStatus.ENDED
-                ),
-                new MovieDTO(
-                        "M004",
-                        "Avengers: Secret Wars",
-                        "Marvel superheroes return for a major multiverse adventure.",
-                        "TBA",
-                        "English",
-                        "Action/Sci-Fi",
-                        "2027-12-17",
-                        movieStatus.UPCOMING
-                )
-        );
-        return moviesList;
+    public MovieDTO updateMovie(String id, MovieDTO dto) {
+        MovieEntity movie = findMovie(id);
+        boolean scheduledShows = showDao.findByMovieMovieId(id).stream().anyMatch(show -> show.getStatus() == showStatus.SCHEDULED);
+        if (scheduledShows && movie.getDuration() != dto.getDuration()) {
+            throw new BusinessException("Cancel scheduled shows before changing the movie duration");
+        }
+        movie.setTitle(dto.getTitle());
+        movie.setDescription(dto.getDescription());
+        movie.setDuration(dto.getDuration());
+        movie.setLanguage(dto.getLanguage());
+        movie.setGenre(dto.getGenre());
+        movie.setReleaseDate(dto.getReleaseDate());
+        movie.setStatus(dto.getStatus());
+        log.info("Updated movie {}", id);
+        return conversion.toMovieDTO(movieDao.save(movie));
     }
 
     @Override
-    public void updateMovie(String movieId, MovieDTO movie) {
-        System.out.println("Updating Movie id is: " + movieId+ " and movie is: "+ movie.toString() );
-
+    public void deleteMovie(String id) {
+        MovieEntity movie = findMovie(id);
+        if (showDao.existsByMovieMovieId(id)) { throw new BusinessException("A movie with shows cannot be deleted"); }
+        movieDao.delete(movie);
+        log.info("Deleted movie {}", id);
     }
 
-    @Override
-    public void deleteMovie(String movieid) {
-        System.out.println("Deleted Movie Id is: " + movieid);
+    private MovieEntity findMovie(String id) {
+        return movieDao.findById(id).orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
     }
 }

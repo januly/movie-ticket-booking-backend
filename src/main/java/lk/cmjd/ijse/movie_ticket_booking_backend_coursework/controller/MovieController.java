@@ -1,50 +1,48 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.controller;
 
+import jakarta.validation.Valid;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.MovieDTO;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.movieStatus;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.MovieService;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
-@RequestMapping("/api/movies")
 @RestController
+@RequestMapping("/api/movies")
 @RequiredArgsConstructor
-
 public class MovieController {
-
     private final MovieService movieService;
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createMovie(@RequestBody MovieDTO movieDTO) {
-        movieService.createMovie(movieDTO);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MovieDTO> create(@Valid @RequestBody MovieDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(movieService.createMovie(dto));
     }
 
-    @GetMapping(value = "{movieId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MovieDTO> getselectedMovie(@PathVariable String movieId) {
-        return new ResponseEntity<>(movieService.getselectedMovie(movieId), HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<List<MovieDTO>> getAll(@RequestParam(required = false) String title, @RequestParam(required = false) String language,
+            @RequestParam(required = false) movieStatus status) {
+        return ResponseEntity.ok(movieService.getMovies(title, language, status));
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<MovieDTO>> getMovies() {
-        return new ResponseEntity<>(movieService.getMovies(), HttpStatus.OK);
+    @GetMapping("/{id}")
+    public ResponseEntity<MovieDTO> get(@PathVariable String id) {
+        return ResponseEntity.ok(movieService.getSelectedMovie(id));
     }
 
-    @PutMapping(value = "{movieId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MovieDTO> updateMovie(@PathVariable String movieId, @RequestBody MovieDTO movieDTO) {
-        movieService.updateMovie(movieId,movieDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
-
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MovieDTO> update(@PathVariable String id, @Valid @RequestBody MovieDTO dto) {
+        return ResponseEntity.ok(movieService.updateMovie(id, dto));
     }
-    @DeleteMapping(value = "{movieId}")
-    public ResponseEntity<Void> deleteMovie(@PathVariable String movieId) {
-        movieService.deleteMovie(movieId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        movieService.deleteMovie(id);
+        return ResponseEntity.noContent().build();
     }
 }

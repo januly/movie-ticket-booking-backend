@@ -1,14 +1,14 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service;
 
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.ShowDTO;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.TheatreDTO;
-
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface TheatreService {
-    void createTheatre(TheatreDTO theatre);
-    TheatreDTO getselectedTheatre(String theatreId);
+    TheatreDTO createTheatre(TheatreDTO dto);
+    TheatreDTO getSelectedTheatre(String id);
     List<TheatreDTO> getTheatres();
-    void updateTheatre(String theatreId,TheatreDTO theatre);
-    void deleteTheatre(String theatreId);
+    TheatreDTO updateTheatre(String id, TheatreDTO dto);
+    void deleteTheatre(String id);
 }

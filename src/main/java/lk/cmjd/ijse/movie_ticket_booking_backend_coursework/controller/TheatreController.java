@@ -1,52 +1,47 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.controller;
 
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.MovieDTO;
+import jakarta.validation.Valid;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.TheatreDTO;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.theatreStatus;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.movieStatus;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.TheatreService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
-@RequestMapping("/api/theatre")
 @RestController
+@RequestMapping("/api/theatres")
 @RequiredArgsConstructor
-
 public class TheatreController {
-
     private final TheatreService theatreService;
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createTheatre(@RequestBody TheatreDTO theatreDTO) {
-        theatreService.createTheatre(theatreDTO);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TheatreDTO> create(@Valid @RequestBody TheatreDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(theatreService.createTheatre(dto));
     }
 
-    @GetMapping(value = "/{theatreId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TheatreDTO> getselectedTheatre(@PathVariable String theatreId) {
-
-        return new ResponseEntity<>(theatreService.getselectedTheatre(theatreId), HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<List<TheatreDTO>> getAll() {
+        return ResponseEntity.ok(theatreService.getTheatres());
     }
 
-
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<TheatreDTO>> getTheaters() {
-
-        return new ResponseEntity<>(theatreService.getTheatres(), HttpStatus.OK);
+    @GetMapping("/{id}")
+    public ResponseEntity<TheatreDTO> get(@PathVariable String id) {
+        return ResponseEntity.ok(theatreService.getSelectedTheatre(id));
     }
-    @PutMapping(value = "/{theatreId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TheatreDTO> updateTheatre(@PathVariable String theatreId, @RequestBody TheatreDTO theatreDTO) {
-        theatreService.updateTheatre(theatreId,theatreDTO);
-        return new ResponseEntity<>( HttpStatus.OK);
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TheatreDTO> update(@PathVariable String id, @Valid @RequestBody TheatreDTO dto) {
+        return ResponseEntity.ok(theatreService.updateTheatre(id, dto));
     }
-    @DeleteMapping(value = "{theatreId}")
-    public ResponseEntity<Void> deleteTheatre(@PathVariable String theatreId) {
-        theatreService.deleteTheatre(theatreId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        theatreService.deleteTheatre(id);
+        return ResponseEntity.noContent().build();
     }
 }

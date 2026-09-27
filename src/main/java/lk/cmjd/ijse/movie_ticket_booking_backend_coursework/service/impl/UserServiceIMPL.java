@@ -1,53 +1,68 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.impl;
 
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.UserDTO;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.Role;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.UserService;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dao.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.entities.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.exception.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.security.CurrentUser;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.*;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.util.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.*;
+import java.util.*;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
+@Transactional
 public class UserServiceIMPL implements UserService {
-
-
-    @Override
-    public UserDTO getselectedUser(String id) {
-
-        return new UserDTO("U001", Role.ADMIN);
-    }
+    private final UserDao userDao;
+    private final BookingDao bookingDao;
+    private final Conversion conversion;
+    private final CurrentUser currentUser;
 
     @Override
-    public List<UserDTO> getAllusers() {
-        List<UserDTO>UserList =List.of(
-                new UserDTO (
-                        "U001",
-                        Role.ADMIN
-                ),
-                new UserDTO(
-                        "U002",
-                        Role.CUSTOMER
-                ),
-                new UserDTO(
-                        "U003",
-                        Role.ADMIN
-                ),
-                new UserDTO(
-                        "U004",
-                        Role.CUSTOMER
-                ));
-        return UserList;
-    }
+    @Transactional(readOnly = true)
+    public UserDTO getSelectedUser(String id) { return conversion.toUserDTO(findUser(id)); }
 
     @Override
-    public void updateUser(String id, UserDTO user) {
-        System.out.println("Updated user id is " + id + " and the user is: " + user.toString());
+    @Transactional(readOnly = true)
+    public List<UserDTO> getUsers() { return userDao.findAll().stream().map(conversion::toUserDTO).toList(); }
 
+    @Override
+    public UserDTO updateUser(String id, UserDTO dto) {
+        UserEntity user = findUser(id);
+        String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
+        userDao.findByEmail(email).ifPresent(existing -> {
+            if (!existing.getId().equals(id)) { throw new BusinessException("An account already exists for this email"); }
+        });
+        if (user.getRole() == Role.ADMIN && dto.getRole() != Role.ADMIN && userDao.countByRole(Role.ADMIN) == 1) {
+            throw new BusinessException("The last administrator cannot be demoted");
+        }
+        user.setName(dto.getName().trim());
+        user.setEmail(email);
+        user.setRole(dto.getRole());
+        log.info("Updated user {}", id);
+        return conversion.toUserDTO(userDao.save(user));
     }
 
     @Override
     public void deleteUser(String id) {
-        System.out.println("Deleted user id is " + id);
+        UserEntity user = findUser(id);
+        if (currentUser.get().getId().equals(id)) { throw new BusinessException("You cannot delete your own account"); }
+        if (bookingDao.existsByUserId(id)) { throw new BusinessException("A user with bookings cannot be deleted"); }
+        if (user.getRole() == Role.ADMIN && userDao.countByRole(Role.ADMIN) == 1) {
+            throw new BusinessException("The last administrator cannot be deleted");
+        }
+        userDao.delete(user);
+        log.info("Deleted user {}", id);
+    }
 
+    private UserEntity findUser(String id) {
+        return userDao.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 }
