@@ -1,44 +1,42 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.controller;
 
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.BookingDTO;
-
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.bookingStatus;
+import jakarta.validation.Valid;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.*;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.BookingService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
-@RequestMapping("/api/bookings")
 @RestController
+@RequestMapping("/api/bookings")
 @RequiredArgsConstructor
-
 public class BookingController {
-    public  final BookingService bookingService;
+    private final BookingService bookingService;
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createBooking(@RequestBody BookingDTO bookingDTO) {
-        bookingService.createBooking(bookingDTO);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    @PostMapping
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<BookingDTO> create(@Valid @RequestBody BookingDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.createBooking(dto));
     }
 
-    @GetMapping(value = "/{bookingId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BookingDTO> getSelectedBooking(@PathVariable String bookingId) {
-        return new ResponseEntity<>(bookingService.getselectedBooking(bookingId), HttpStatus.OK);
-    }
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<BookingDTO>> getAll() { return ResponseEntity.ok(bookingService.getBookings()); }
 
-    @GetMapping(value = "/my-bookings", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<BookingDTO>> getMyBookings() {
-        return new ResponseEntity<>(bookingService.getMyBookings(),HttpStatus.OK);
-    }
+    @GetMapping("/my-bookings")
+    public ResponseEntity<List<BookingDTO>> myBookings() { return ResponseEntity.ok(bookingService.getMyBookings()); }
 
-    @PutMapping(value = "/{id}/cancel", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BookingDTO> cancelBooking(@PathVariable ("id") String bookingId,@RequestBody BookingDTO bookingDTO) {
-        bookingService.cancelBooking(bookingId,bookingDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
+    @GetMapping("/{id}")
+    public ResponseEntity<BookingDTO> get(@PathVariable String id) { return ResponseEntity.ok(bookingService.getSelectedBooking(id)); }
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<BookingDTO> cancel(@PathVariable String id) { return ResponseEntity.ok(bookingService.cancelBooking(id)); }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BookingDTO> updateStatus(@PathVariable String id, @Valid @RequestBody BookingStatusDTO dto) {
+        return ResponseEntity.ok(bookingService.updateStatus(id, dto.getStatus()));
     }
 }
-
