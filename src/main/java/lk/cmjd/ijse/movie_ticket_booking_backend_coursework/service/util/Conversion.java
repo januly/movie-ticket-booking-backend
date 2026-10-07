@@ -28,7 +28,8 @@ public class Conversion {
     public BookingDTO toBookingDTO(BookingEntity entity) {
         return new BookingDTO(entity.getBookingId(), entity.getUser().getId(), entity.getShow().getShowId(),
                 Arrays.asList(entity.getSeatNumbers().split(",")), entity.getNumberOfTickets(),
-                entity.getTotalAmount(), entity.getBookingDate(), entity.getStatus());
+                entity.getTotalAmount(), entity.getBookingDate(), entity.getStatus(),
+                entity.getPayment() == null ? null : entity.getPayment().getPaymentId());
     }
 
     public PaymentDTO toPaymentDTO(PaymentEntity entity) {

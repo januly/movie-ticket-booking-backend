@@ -1,13 +1,13 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service;
 
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.PaymentDTO;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.ShowDTO;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.paymentStatus;
+import java.util.List;
 
 public interface PaymentService {
-    void createPayment(PaymentDTO payment);
-    PaymentDTO getselectedPayment(String paymentId);
-    void processPayment(String paymentId);
-    paymentStatus getPaymentStatus(String paymentId);
-
+    PaymentDTO createPayment(PaymentDTO dto);
+    PaymentDTO getSelectedPayment(String id);
+    PaymentDTO processPayment(String id, paymentStatus result);
+    paymentStatus getPaymentStatus(String id);
+    List<PaymentDTO> getPayments();
 }

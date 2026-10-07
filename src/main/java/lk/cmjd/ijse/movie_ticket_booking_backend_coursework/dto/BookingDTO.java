@@ -23,4 +23,5 @@ public class BookingDTO {
     private BigDecimal totalAmount;
     private LocalDateTime bookingDate;
     private bookingStatus status;
+    private String paymentId;
 }

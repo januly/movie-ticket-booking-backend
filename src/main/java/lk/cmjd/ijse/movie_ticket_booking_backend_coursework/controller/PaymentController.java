@@ -1,43 +1,40 @@
 package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.controller;
 
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.PaymentDTO;
+import jakarta.validation.Valid;
+import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.*;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.paymentStatus;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.PaymentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
-@RequestMapping("/api/payments")
 @RestController
+@RequestMapping("/api/payments")
 @RequiredArgsConstructor
-
 public class PaymentController {
-    public final PaymentService paymentService;
+    private final PaymentService paymentService;
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createPayment(@RequestBody PaymentDTO paymentDTO) {
-        paymentService.createPayment(paymentDTO);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    @PostMapping
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<PaymentDTO> create(@Valid @RequestBody PaymentDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.createPayment(dto));
     }
 
-    @GetMapping(value = "/{paymentid}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PaymentDTO> getSelectedPayment(@PathVariable("paymentid") String paymentId) {
-        return new ResponseEntity<>(paymentService.getselectedPayment(paymentId), HttpStatus.OK);
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PaymentDTO>> getAll() { return ResponseEntity.ok(paymentService.getPayments()); }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PaymentDTO> get(@PathVariable String id) { return ResponseEntity.ok(paymentService.getSelectedPayment(id)); }
+
+    @PutMapping("/{id}/process")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<PaymentDTO> process(@PathVariable String id, @Valid @RequestBody ProcessPaymentDTO dto) {
+        return ResponseEntity.ok(paymentService.processPayment(id, dto.getStatus()));
     }
 
-    @PutMapping("/{paymentId}/process")
-    public ResponseEntity<Void> processPayment(@PathVariable String paymentId) {
-        paymentService.processPayment(paymentId);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @GetMapping("/{paymentId}/status")
-    public ResponseEntity<paymentStatus> getPaymentStatus(@PathVariable String paymentId) {
-
-        paymentStatus status = paymentService.getPaymentStatus(paymentId);
-        return new ResponseEntity<>(status, HttpStatus.OK);
-    }
+    @GetMapping("/{id}/status")
+    public ResponseEntity<paymentStatus> status(@PathVariable String id) { return ResponseEntity.ok(paymentService.getPaymentStatus(id)); }
 }
-
