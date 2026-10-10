@@ -29,8 +29,7 @@ build/
 
 ### VS Code ###
 .vscode/
-# Environment variables and secrets
-.env
+# Local configuration overrides
 .env.*
 
 # Log files
