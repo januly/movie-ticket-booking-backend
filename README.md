@@ -10,6 +10,12 @@ An API for browsing movies, booking seats and managing payments. Administrators 
 - Maven
 - JWT, Lombok and ModelMapper
 
+## ERD
+
+![ERD](docs/erd.svg)
+
+[PNG](docs/erd.png)
+
 ## Setup
 
 Create the database, tables and sample data:
