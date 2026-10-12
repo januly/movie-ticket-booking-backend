@@ -23,7 +23,6 @@ public class UserServiceIMPL implements UserService {
     private final UserDao userDao;
     private final BookingDao bookingDao;
     private final Conversion conversion;
-    private final CurrentUser currentUser;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,9 +39,6 @@ public class UserServiceIMPL implements UserService {
         userDao.findByEmail(email).ifPresent(existing -> {
             if (!existing.getId().equals(id)) { throw new BusinessException("An account already exists for this email"); }
         });
-        if (user.getRole() == Role.ADMIN && dto.getRole() != Role.ADMIN && userDao.countByRole(Role.ADMIN) == 1) {
-            throw new BusinessException("The last administrator cannot be demoted");
-        }
         user.setName(dto.getName().trim());
         user.setEmail(email);
         user.setRole(dto.getRole());
@@ -53,11 +49,7 @@ public class UserServiceIMPL implements UserService {
     @Override
     public void deleteUser(String id) {
         UserEntity user = findUser(id);
-        if (currentUser.get().getId().equals(id)) { throw new BusinessException("You cannot delete your own account"); }
         if (bookingDao.existsByUserId(id)) { throw new BusinessException("A user with bookings cannot be deleted"); }
-        if (user.getRole() == Role.ADMIN && userDao.countByRole(Role.ADMIN) == 1) {
-            throw new BusinessException("The last administrator cannot be deleted");
-        }
         userDao.delete(user);
         log.info("Deleted user {}", id);
     }

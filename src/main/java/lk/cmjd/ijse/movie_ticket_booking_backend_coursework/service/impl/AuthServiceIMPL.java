@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.Locale;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,7 @@ public class AuthServiceIMPL implements AuthService {
 
     @Override
     public UserDTO signUp(AuthDTO dto) {
+        validatePassword(dto.getPassword());
         String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
         if (userDao.existsByEmail(email)) {
             throw new BusinessException("An account already exists for this email");
@@ -43,6 +45,7 @@ public class AuthServiceIMPL implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public AuthResponseDTO signIn(SignInDTO dto) {
+        validatePassword(dto.getPassword());
         UserEntity user = userDao.findByEmail(dto.getEmail().trim().toLowerCase(Locale.ROOT)).orElse(null);
         if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
@@ -50,5 +53,10 @@ public class AuthServiceIMPL implements AuthService {
         log.info("User {} signed in", user.getId());
         return new AuthResponseDTO(jwtService.createToken(user), "Bearer", jwtService.getExpirationSeconds(),
                 conversion.toUserDTO(user));
+    }
+    private void validatePassword(String password) {
+        if (password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must fit within 72 UTF-8 bytes");
+        }
     }
 }

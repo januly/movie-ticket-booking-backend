@@ -8,6 +8,10 @@ import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
@@ -57,6 +61,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PessimisticLockingFailureException.class)
     public ResponseEntity<ApiError> busy(PessimisticLockingFailureException ex, HttpServletRequest request) {
         return error(HttpStatus.CONFLICT, "The show is being updated. Please try again", request, Map.of());
+    }
+
+    @ExceptionHandler({NoResourceFoundException.class, HttpRequestMethodNotSupportedException.class, HttpMediaTypeNotSupportedException.class})
+    public ResponseEntity<ApiError> routing(Exception ex, HttpServletRequest request) {
+        ErrorResponse response = (ErrorResponse) ex;
+        HttpStatus status = HttpStatus.valueOf(response.getStatusCode().value());
+        return error(status, status.getReasonPhrase(), request, Map.of());
     }
 
     @ExceptionHandler(Exception.class)

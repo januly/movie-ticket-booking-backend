@@ -2,7 +2,6 @@ package lk.cmjd.ijse.movie_ticket_booking_backend_coursework.controller;
 
 import jakarta.validation.Valid;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.MovieDTO;
-import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.dto.enums.movieStatus;
 import lk.cmjd.ijse.movie_ticket_booking_backend_coursework.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -23,9 +22,8 @@ public class MovieController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MovieDTO>> getAll(@RequestParam(required = false) String title, @RequestParam(required = false) String language,
-            @RequestParam(required = false) movieStatus status) {
-        return ResponseEntity.ok(movieService.getMovies(title, language, status));
+    public ResponseEntity<List<MovieDTO>> getAll() {
+        return ResponseEntity.ok(movieService.getMovies());
     }
 
     @GetMapping("/{id}")

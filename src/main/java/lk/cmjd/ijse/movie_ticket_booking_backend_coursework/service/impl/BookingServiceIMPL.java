@@ -77,7 +77,12 @@ public class BookingServiceIMPL implements BookingService {
     public BookingDTO cancelBooking(String id) {
         BookingEntity booking = bookingRules.lockBooking(id);
         if (booking.getStatus() == bookingStatus.CANCELLED) { throw new BusinessException("This booking is already cancelled"); }
-        if (currentUser.get().getRole() != Role.ADMIN) { bookingRules.checkBookable(booking.getShow()); }
+        if (currentUser.get().getRole() != Role.ADMIN
+                && (booking.getShow().getStatus() == showStatus.COMPLETED
+                || !LocalDateTime.of(booking.getShow().getShowDate(), booking.getShow().getShowTime())
+                    .isAfter(LocalDateTime.now(BookingRules.SRI_LANKA)))) {
+            throw new BusinessException("A booking cannot be cancelled after the show starts");
+        }
         bookingRules.cancel(booking);
         log.info("Cancelled booking {}", id);
         return conversion.toBookingDTO(booking);

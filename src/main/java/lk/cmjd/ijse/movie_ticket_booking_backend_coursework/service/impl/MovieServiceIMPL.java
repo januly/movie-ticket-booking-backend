@@ -38,12 +38,8 @@ public class MovieServiceIMPL implements MovieService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MovieDTO> getMovies(String title, String language, movieStatus status) {
-        return movieDao.findAll().stream()
-                .filter(movie -> title == null || movie.getTitle().toLowerCase(Locale.ROOT).contains(title.toLowerCase(Locale.ROOT)))
-                .filter(movie -> language == null || movie.getLanguage().equalsIgnoreCase(language))
-                .filter(movie -> status == null || movie.getStatus() == status)
-                .map(conversion::toMovieDTO).toList();
+    public List<MovieDTO> getMovies() {
+        return movieDao.findAll().stream().map(conversion::toMovieDTO).toList();
     }
 
     @Override

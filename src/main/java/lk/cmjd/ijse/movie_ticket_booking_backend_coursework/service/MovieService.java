@@ -8,7 +8,7 @@ import java.util.List;
 public interface MovieService {
     MovieDTO createMovie(MovieDTO dto);
     MovieDTO getSelectedMovie(String id);
-    List<MovieDTO> getMovies(String title, String language, movieStatus status);
+    List<MovieDTO> getMovies();
     MovieDTO updateMovie(String id, MovieDTO dto);
     void deleteMovie(String id);
 }
